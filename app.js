@@ -1,8 +1,7 @@
- //jshint esversion:6
+//jshint esversion:6
 
 const express = require("express");
 const bodyParser = require("body-parser");
-const mongoose = require("mongoose");
 const ejs = require("ejs");
 const _ = require('lodash');
 
@@ -14,72 +13,67 @@ const app = express();
 
 app.set('view engine', 'ejs');
 
-app.use(bodyParser.urlencoded({extended: true}));
+app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static("public"));
 
-mongoose.connect("mongodb://localhost:27017/blogDB", {useNewUrlParser:true});
+let posts = [];
 
-const postSchema = {
-  title: String,
-  content: String
-};
-const Post = mongoose.model("Post", postSchema);
 
-app.get("/", function(req, res){
-  Post.find({}, function(err, posts){
-    res.render("home", {
-      startingContent: homeStartingContent,
-      posts: posts
-    });
+// const postSchema = {
+//   title: String,
+//   content: String
+// };
+// const Post = mongoose.model("Post", postSchema);
+
+app.get("/", function (req, res) {
+  res.render("home", {
+    startingContent: homeStartingContent,
+    posts: posts
   });
-
 });
 
-app.get("/about", function(req, res){
-  res.render("about", {startingAboutContent: aboutContent});
+
+app.get("/about", function (req, res) {
+  res.render("about", { startingAboutContent: aboutContent });
 });
 
-app.get("/contact", function(req, res){
-  res.render("contact", {startingContactContent: contactContent});
+app.get("/contact", function (req, res) {
+  res.render("contact", { startingContactContent: contactContent });
 });
 
-app.get("/compose", function(req, res){
+app.get("/compose", function (req, res) {
   res.render("compose");
 });
 
-app.post("/compose", function(req, res){
-  const post = new Post({
+app.post("/compose", function (req, res) {
+  const post = {
     title: req.body.postTitle,
     content: req.body.postBody
-  });
+  };
 
+  posts.push(post);
 
-
-  post.save(function(err){
-    if(!err){
-      res.redirect("/");
-    }
-  });
+  res.redirect("/");
 
 });
 
-app.get("/posts/:postId", function(req, res) {
-  const requestedPostId = req.params.postId;
 
-    Post.findOne({_id: requestedPostId}, function(err, post){
+app.get("/posts/:postName", function (req, res) {
+  const requestedTitle = _.lowerCase(req.params.postName);
+
+  posts.forEach(function (post) {
+    const storedTitle = _.lowerCase(post.title);
+
+    if (storedTitle === requestedTitle) {
       res.render("post", {
         title: post.title,
         content: post.content
       });
-    });
-    // if (storedTitle === requestedTitle) {
-    //   res.render("post", {
-    //     title: post.title,
-    //     content: post.content
-    //   });
-    // }
-})
-
-app.listen(3000, function() {
-  console.log("Server started on port 3000");
+    }
+  });
 });
+
+  app.listen(3000, () => {
+    console.log("Server Started Successfully!")
+  });
+
